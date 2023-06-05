@@ -47,22 +47,28 @@ public class JbangCommand implements Runnable {
   private void runJbang(File jarFile, String javaFile, String classPathJar) {
     try {
       // Step One: Execute the initial command to get the classpath
-      ProcessBuilder pb = new ProcessBuilder(
-          "java",
-          "-cp",
-          jarFile.getAbsolutePath(),
-          "dev.jbang.Main",
-          "--cp",
-          classPathJar,
-          javaFile);
+      ProcessBuilder pb =
+          new ProcessBuilder(
+              "java",
+              "-cp",
+              jarFile.getAbsolutePath(),
+              "dev.jbang.Main",
+              "--cp",
+              classPathJar,
+              javaFile);
       pb.redirectErrorStream(true);
       Process process = pb.start();
-      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      BufferedReader bufferedReader =
+          new BufferedReader(new InputStreamReader(process.getInputStream()));
       String classPath = extractClassPathFromOutput(bufferedReader);
       String mainClass = null;
 
-      if (classPath.contains(".java")) {
-        mainClass = extractClassName(classPath);
+      if (classPath.contains("EdgeChainApplication.java")) {
+        mainClass = "com.edgechain.app.EdgeChainApplication";
+      }
+
+      if (classPath.contains("EdgeChainServiceApplication.java")) {
+        mainClass = "com.edgechain.service.EdgeChainServiceApplication";
       }
 
       System.out.println("Extracted Classpath: " + classPath);
@@ -86,7 +92,7 @@ public class JbangCommand implements Runnable {
     String classPath = null;
     final String pattern = "-classpath '";
     while ((line = bufferedReader.readLine()) != null) {
-      // System.out.println("Line: " + line); // added debug message
+      //      System.out.println("Line: " + line); // added debug message
       int startIndex = line.indexOf(pattern);
       if (startIndex > -1) {
         startIndex += pattern.length();
@@ -100,24 +106,19 @@ public class JbangCommand implements Runnable {
     return classPath;
   }
 
-  private String extractClassName(String classPath) {
-    // Assuming that the class name with package follows the format "com.packagename.ClassName.java"
-    int lastIndex = classPath.lastIndexOf(".java");
-    if (lastIndex > -1) {
-      String fileName = classPath.substring(0, lastIndex); // Extracting "com.packagename.ClassName"
-      String[] parts = fileName.split("/");
-      StringBuilder packageName = new StringBuilder();
-      for (int i = 0; i < parts.length - 1; i++) {
-        packageName.append(parts[i]);
-        if (i < parts.length - 2) {
-          packageName.append(".");
-        }
-      }
-      String className = parts[parts.length - 1];
-      return packageName.toString() + "." + className;
-    }
-    return null;
-  }
+  //    private String extractMainClassFromOutput(BufferedReader bufferedReader) throws IOException
+  // {
+  //        String line;
+  //        String mainClass = null;
+  //        while ((line = bufferedReader.readLine()) != null) {
+  //            System.out.println("Line: " + line); // added debug message
+  //            if (line.contains("com.example.Flyopenaiwiki")) {
+  //                mainClass = "com.example.Flyopenaiwiki";
+  //                break;
+  //            }
+  //        }
+  //        return mainClass;
+  //    }
 
   private void runJavaWithClassPath(String classPath, String mainClass) {
     try {
